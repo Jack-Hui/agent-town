@@ -2,6 +2,7 @@ import { ObjectType, v } from 'convex/values';
 import { GameId, parseGameId } from './ids';
 import { agentId, conversationId, playerId } from './ids';
 import { serializedPlayer } from './player';
+import { Point, point } from '../util/types';
 import { Game } from './game';
 import {
   ACTION_TIMEOUT,
@@ -34,9 +35,10 @@ export class Agent {
     operationId: string;
     started: number;
   };
+  homeLocation?: Point;
 
   constructor(serialized: SerializedAgent) {
-    const { id, lastConversation, lastInviteAttempt, inProgressOperation } = serialized;
+    const { id, lastConversation, lastInviteAttempt, inProgressOperation, homeLocation } = serialized;
     const playerId = parseGameId('players', serialized.playerId);
     this.id = parseGameId('agents', id);
     this.playerId = playerId;
@@ -47,6 +49,7 @@ export class Agent {
     this.lastConversation = lastConversation;
     this.lastInviteAttempt = lastInviteAttempt;
     this.inProgressOperation = inProgressOperation;
+    this.homeLocation = homeLocation;
   }
 
   tick(game: Game, now: number) {
@@ -267,6 +270,7 @@ export class Agent {
       lastConversation: this.lastConversation,
       lastInviteAttempt: this.lastInviteAttempt,
       inProgressOperation: this.inProgressOperation,
+      homeLocation: this.homeLocation,
     };
   }
 }
@@ -284,6 +288,7 @@ export const serializedAgent = {
       started: v.number(),
     }),
   ),
+  homeLocation: v.optional(point),
 };
 export type SerializedAgent = ObjectType<typeof serializedAgent>;
 

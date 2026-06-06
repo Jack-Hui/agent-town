@@ -139,6 +139,7 @@ export const agentInputs = {
           lastConversation: undefined,
           lastInviteAttempt: undefined,
           toRemember: undefined,
+          homeLocation: description.home,
         }),
       );
       game.agentDescriptions.set(
@@ -173,6 +174,8 @@ export const agentInputs = {
       // is the human-readable intro. Falls back to identity for back-
       // compat with callers that don't supply a description.
       description: v.optional(v.string()),
+      // Optional home location for the agent
+      homeLocation: v.optional(v.object({ x: v.number(), y: v.number() })),
     },
     handler: (game, now, args) => {
       const description = args.description && args.description.length > 0
@@ -189,6 +192,7 @@ export const agentInputs = {
           lastConversation: undefined,
           lastInviteAttempt: undefined,
           toRemember: undefined,
+          homeLocation: args.homeLocation,
         }),
       );
       game.agentDescriptions.set(
