@@ -1,6 +1,6 @@
 import { ObjectType, v } from 'convex/values';
-import { GameId, parseGameId } from './ids';
-import { Point, point } from '../util/types';
+import { GameId, parseGameId } from '../../aiTown/ids';
+import { Point, point } from '../../util/types';
 
 // House item/inventory entry
 export const houseItem = v.object({

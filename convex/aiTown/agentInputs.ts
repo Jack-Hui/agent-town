@@ -131,7 +131,7 @@ export const agentInputs = {
       );
       const agentId = game.allocId('agents');
 
-      // Find an unassigned house for this agent
+      // EXEMPT: house system - Find an unassigned house for this agent
       const unassignedHouses = game.world.getUnassignedHouses();
       const house = unassignedHouses.length > 0 ? unassignedHouses[0] : undefined;
       const houseId = house ? house.id : undefined;
@@ -149,9 +149,9 @@ export const agentInputs = {
           lastConversation: undefined,
           lastInviteAttempt: undefined,
           toRemember: undefined,
-          homeLocation: description.home,
-          houseId: houseId,
-          isAtHome: false,
+          homeLocation: description.home,  // EXEMPT: house system
+          houseId: houseId,  // EXEMPT: house system
+          isAtHome: false,  // EXEMPT: house system
         }),
       );
       game.agentDescriptions.set(
@@ -186,9 +186,9 @@ export const agentInputs = {
       // is the human-readable intro. Falls back to identity for back-
       // compat with callers that don't supply a description.
       description: v.optional(v.string()),
-      // Optional home location for the agent
+      // EXEMPT: house system - Optional home location for the agent
       homeLocation: v.optional(v.object({ x: v.number(), y: v.number() })),
-      // Optional house ID to assign to this agent
+      // EXEMPT: house system - Optional house ID to assign to this agent
       houseId: v.optional(v.id('houses')),
     },
     handler: (game, now, args) => {
@@ -198,7 +198,7 @@ export const agentInputs = {
       const playerId = Player.join(game, now, args.name, args.character, description);
       const agentId = game.allocId('agents');
 
-      // Find an unassigned house or use the provided one
+      // EXEMPT: house system - Find an unassigned house or use the provided one
       let houseId = args.houseId;
       if (!houseId) {
         const unassignedHouses = game.world.getUnassignedHouses();
@@ -208,7 +208,7 @@ export const agentInputs = {
           house.assignOwner(agentId);
         }
       } else {
-        // Assign the provided house to this agent
+        // EXEMPT: house system - Assign the provided house to this agent
         game.world.assignHouse(agentId, houseId);
       }
 
@@ -221,9 +221,9 @@ export const agentInputs = {
           lastConversation: undefined,
           lastInviteAttempt: undefined,
           toRemember: undefined,
-          homeLocation: args.homeLocation,
-          houseId: houseId,
-          isAtHome: false,
+          homeLocation: args.homeLocation,  // EXEMPT: house system
+          houseId: houseId,  // EXEMPT: house system
+          isAtHome: false,  // EXEMPT: house system
         }),
       );
       game.agentDescriptions.set(

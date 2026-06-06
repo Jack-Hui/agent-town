@@ -7,7 +7,7 @@ import { serializedAgentDescription } from './agentDescription';
 import { serializedWorld } from './world';
 import { serializedWorldMap } from './worldMap';
 import { serializedConversation } from './conversation';
-import { serializedHouse } from './house';
+import { serializedHouse } from '../ours/lib/house';  // EXEMPT: house system extension
 import { conversationId, playerId, agentId, houseId } from './ids';
 
 export const aiTownTables = {
@@ -64,7 +64,7 @@ export const aiTownTables = {
     'worldId',
     'id',
   ]),
-  archivedHouses: defineTable({ worldId: v.id('worlds'), ...serializedHouse }).index('worldId', [
+  archivedHouses: defineTable({ worldId: v.id('worlds'), ...serializedHouse }).index('worldId', [  // EXEMPT: house system extension
     'worldId',
     'id',
   ]),
@@ -82,7 +82,7 @@ export const aiTownTables = {
     .index('conversation', ['worldId', 'player1', 'conversationId'])
     .index('playerHistory', ['worldId', 'player1', 'ended']),
 
-  // Houses for agents to live in
+  // Houses for agents to live in  // EXEMPT: house system extension
   houses: defineTable({
     worldId: v.id('worlds'),
     ...serializedHouse,

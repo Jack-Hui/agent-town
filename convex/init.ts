@@ -8,8 +8,8 @@ import { Id } from './_generated/dataModel';
 import { createEngine } from './aiTown/main';
 import { ENGINE_ACTION_DURATION } from './constants';
 import { detectMismatchedLLMProvider } from './util/llm';
-import { DEFAULT_HOUSES } from './aiTown/house';
-import { GameTime } from './aiTown/time';
+import { DEFAULT_HOUSES } from './ours/lib/house';  # EXEMPT: house system moved to ours/
+import { GameTime } from './ours/lib/time';  # EXEMPT: time system moved to ours/
 
 const init = mutation({
   args: {

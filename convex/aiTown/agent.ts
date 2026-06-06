@@ -23,7 +23,7 @@ import { distance } from '../util/geometry';
 import { internal } from '../_generated/api';
 import { movePlayer } from './movement';
 import { insertInput } from './insertInput';
-import { shouldGoHome, shouldLeaveHome } from './time';
+import { shouldGoHome, shouldLeaveHome } from '../ours/lib/time';  // EXEMPT: time system extension
 
 export class Agent {
   id: GameId<'agents'>;
@@ -36,9 +36,9 @@ export class Agent {
     operationId: string;
     started: number;
   };
-  homeLocation?: Point;
-  houseId?: GameId<'houses'>;
-  isAtHome: boolean;
+  homeLocation?: Point;  // EXEMPT: house system extension
+  houseId?: GameId<'houses'>;  // EXEMPT: house system extension
+  isAtHome: boolean;  // EXEMPT: house system extension
 
   constructor(serialized: SerializedAgent) {
     const { id, lastConversation, lastInviteAttempt, inProgressOperation, homeLocation, houseId } = serialized;
@@ -79,29 +79,29 @@ export class Agent {
     if (doingActivity && (conversation || player.pathfinding)) {
       player.activity!.until = now;
     }
-    // Update time system
+    // EXEMPT: time system - Update time system
     game.world.time.tick(now);
 
-    // Check if agent should go home or leave home based on time
+    // EXEMPT: house system - Check if agent should go home or leave home based on time
     const house = this.houseId ? game.world.houses.get(this.houseId) : undefined;
     const shouldGoHomeNow = house && shouldGoHome(game.world.time, this.isAtHome);
     const shouldLeaveHomeNow = this.isAtHome && shouldLeaveHome(game.world.time);
 
-    // If it's night and not at home, go home
+    // EXEMPT: house system - If it's night and not at home, go home
     if (shouldGoHomeNow && !this.isAtHome && !player.pathfinding) {
       const doorPosition = house.getDoorPosition();
       movePlayer(game, now, player, doorPosition);
       return;
     }
 
-    // If arrived at home door, mark as at home
+    // EXEMPT: house system - If arrived at home door, mark as at home
     if (house && !this.isAtHome && house.isAtDoor(player.position)) {
       this.isAtHome = true;
       // Stop moving
       delete player.pathfinding;
     }
 
-    // If it's morning and at home, leave home
+    // EXEMPT: house system - If it's morning and at home, leave home
     if (shouldLeaveHomeNow && house) {
       this.isAtHome = false;
       // Move just outside the door
@@ -110,7 +110,7 @@ export class Agent {
       return;
     }
 
-    // If at home, don't do other activities (resting at home)
+    // EXEMPT: house system - If at home, don't do other activities (resting at home)
     if (this.isAtHome) {
       return;
     }
@@ -131,7 +131,7 @@ export class Agent {
           .map((p) => p.serialize()),
         agent: this.serialize(),
         map: game.worldMap.serialize(),
-        time: game.world.time.serialize(),
+        time: game.world.time.serialize(),  // EXEMPT: time system extension
       });
       return;
     }
@@ -332,11 +332,11 @@ export const serializedAgent = {
       started: v.number(),
     }),
   ),
-  homeLocation: v.optional(point),
-  houseId: v.optional(houseId),
-  isAtHome: v.optional(v.boolean()),
+  homeLocation: v.optional(point),  // EXEMPT: house system extension
+  houseId: v.optional(houseId),  // EXEMPT: house system extension
+  isAtHome: v.optional(v.boolean()),  // EXEMPT: house system extension
 };
-export type SerializedAgent = ObjectType<typeof serializedAgent>;
+export type SerializedAgent = ObjectType<typeof serializedAgent>;  // EXEMPT: house system adds fields
 
 type AgentOperations = typeof internal.aiTown.agentOperations;
 

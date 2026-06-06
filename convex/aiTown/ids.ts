@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 
-const IdShortCodes = { agents: 'a', conversations: 'c', players: 'p', operations: 'o', houses: 'h' };
+const IdShortCodes = { agents: 'a', conversations: 'c', players: 'p', operations: 'o', houses: 'h' };  // EXEMPT: house system adds houses type
 export type IdTypes = keyof typeof IdShortCodes;
 
 export type GameId<T extends IdTypes> = string & { __type: T };
@@ -30,4 +30,4 @@ export const conversationId = v.string();
 export const playerId = v.string();
 export const agentId = v.string();
 export const operationId = v.string();
-export const houseId = v.string();
+export const houseId = v.string();  // EXEMPT: house system adds houseId type
