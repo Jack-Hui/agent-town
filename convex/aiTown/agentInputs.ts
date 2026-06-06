@@ -130,6 +130,16 @@ export const agentInputs = {
         description.identity,
       );
       const agentId = game.allocId('agents');
+
+      // Find an unassigned house for this agent
+      const unassignedHouses = game.world.getUnassignedHouses();
+      const house = unassignedHouses.length > 0 ? unassignedHouses[0] : undefined;
+      const houseId = house ? house.id : undefined;
+
+      if (house) {
+        house.assignOwner(agentId);
+      }
+
       game.world.agents.set(
         agentId,
         new Agent({
@@ -140,6 +150,8 @@ export const agentInputs = {
           lastInviteAttempt: undefined,
           toRemember: undefined,
           homeLocation: description.home,
+          houseId: houseId,
+          isAtHome: false,
         }),
       );
       game.agentDescriptions.set(
@@ -176,6 +188,8 @@ export const agentInputs = {
       description: v.optional(v.string()),
       // Optional home location for the agent
       homeLocation: v.optional(v.object({ x: v.number(), y: v.number() })),
+      // Optional house ID to assign to this agent
+      houseId: v.optional(v.id('houses')),
     },
     handler: (game, now, args) => {
       const description = args.description && args.description.length > 0
@@ -183,6 +197,21 @@ export const agentInputs = {
         : args.identity;
       const playerId = Player.join(game, now, args.name, args.character, description);
       const agentId = game.allocId('agents');
+
+      // Find an unassigned house or use the provided one
+      let houseId = args.houseId;
+      if (!houseId) {
+        const unassignedHouses = game.world.getUnassignedHouses();
+        const house = unassignedHouses.length > 0 ? unassignedHouses[0] : undefined;
+        if (house) {
+          houseId = house.id;
+          house.assignOwner(agentId);
+        }
+      } else {
+        // Assign the provided house to this agent
+        game.world.assignHouse(agentId, houseId);
+      }
+
       game.world.agents.set(
         agentId,
         new Agent({
@@ -193,6 +222,8 @@ export const agentInputs = {
           lastInviteAttempt: undefined,
           toRemember: undefined,
           homeLocation: args.homeLocation,
+          houseId: houseId,
+          isAtHome: false,
         }),
       );
       game.agentDescriptions.set(

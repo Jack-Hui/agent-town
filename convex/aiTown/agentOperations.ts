@@ -14,6 +14,7 @@ import { ACTIVITIES, ACTIVITY_COOLDOWN, CONVERSATION_COOLDOWN } from '../constan
 import { api, internal } from '../_generated/api';
 import { sleep } from '../util/sleep';
 import { serializedPlayer } from './player';
+import { serializedTime } from './time';
 
 export const agentRememberConversation = internalAction({
   args: {
@@ -98,6 +99,7 @@ export const agentDoSomething = internalAction({
     map: v.object(serializedWorldMap),
     otherFreePlayers: v.array(v.object(serializedPlayer)),
     operationId: v.string(),
+    time: v.optional(v.object(serializedTime)),
   },
   handler: async (ctx, args) => {
     const { player, agent } = args;

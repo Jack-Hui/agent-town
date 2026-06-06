@@ -1,6 +1,6 @@
 import { ObjectType, v } from 'convex/values';
 import { GameId, parseGameId } from './ids';
-import { agentId, conversationId, playerId } from './ids';
+import { agentId, conversationId, playerId, houseId } from './ids';
 import { serializedPlayer } from './player';
 import { Point, point } from '../util/types';
 import { Game } from './game';
@@ -23,6 +23,7 @@ import { distance } from '../util/geometry';
 import { internal } from '../_generated/api';
 import { movePlayer } from './movement';
 import { insertInput } from './insertInput';
+import { shouldGoHome, shouldLeaveHome } from './time';
 
 export class Agent {
   id: GameId<'agents'>;
@@ -36,9 +37,11 @@ export class Agent {
     started: number;
   };
   homeLocation?: Point;
+  houseId?: GameId<'houses'>;
+  isAtHome: boolean;
 
   constructor(serialized: SerializedAgent) {
-    const { id, lastConversation, lastInviteAttempt, inProgressOperation, homeLocation } = serialized;
+    const { id, lastConversation, lastInviteAttempt, inProgressOperation, homeLocation, houseId } = serialized;
     const playerId = parseGameId('players', serialized.playerId);
     this.id = parseGameId('agents', id);
     this.playerId = playerId;
@@ -50,6 +53,8 @@ export class Agent {
     this.lastInviteAttempt = lastInviteAttempt;
     this.inProgressOperation = inProgressOperation;
     this.homeLocation = homeLocation;
+    this.houseId = houseId ? parseGameId('houses', houseId) : undefined;
+    this.isAtHome = serialized.isAtHome ?? false;
   }
 
   tick(game: Game, now: number) {
@@ -74,6 +79,42 @@ export class Agent {
     if (doingActivity && (conversation || player.pathfinding)) {
       player.activity!.until = now;
     }
+    // Update time system
+    game.world.time.tick(now);
+
+    // Check if agent should go home or leave home based on time
+    const house = this.houseId ? game.world.houses.get(this.houseId) : undefined;
+    const shouldGoHomeNow = house && shouldGoHome(game.world.time, this.isAtHome);
+    const shouldLeaveHomeNow = this.isAtHome && shouldLeaveHome(game.world.time);
+
+    // If it's night and not at home, go home
+    if (shouldGoHomeNow && !this.isAtHome && !player.pathfinding) {
+      const doorPosition = house.getDoorPosition();
+      movePlayer(game, now, player, doorPosition);
+      return;
+    }
+
+    // If arrived at home door, mark as at home
+    if (house && !this.isAtHome && house.isAtDoor(player.position)) {
+      this.isAtHome = true;
+      // Stop moving
+      delete player.pathfinding;
+    }
+
+    // If it's morning and at home, leave home
+    if (shouldLeaveHomeNow && house) {
+      this.isAtHome = false;
+      // Move just outside the door
+      const exitPosition = { x: house.doorX, y: house.doorY + 1 };
+      movePlayer(game, now, player, exitPosition);
+      return;
+    }
+
+    // If at home, don't do other activities (resting at home)
+    if (this.isAtHome) {
+      return;
+    }
+
     // If we're not in a conversation, do something.
     // If we aren't doing an activity or moving, do something.
     // If we have been wandering but haven't thought about something to do for
@@ -90,6 +131,7 @@ export class Agent {
           .map((p) => p.serialize()),
         agent: this.serialize(),
         map: game.worldMap.serialize(),
+        time: game.world.time.serialize(),
       });
       return;
     }
@@ -271,6 +313,8 @@ export class Agent {
       lastInviteAttempt: this.lastInviteAttempt,
       inProgressOperation: this.inProgressOperation,
       homeLocation: this.homeLocation,
+      houseId: this.houseId,
+      isAtHome: this.isAtHome,
     };
   }
 }
@@ -289,6 +333,8 @@ export const serializedAgent = {
     }),
   ),
   homeLocation: v.optional(point),
+  houseId: v.optional(houseId),
+  isAtHome: v.optional(v.boolean()),
 };
 export type SerializedAgent = ObjectType<typeof serializedAgent>;
 

@@ -7,7 +7,8 @@ import { serializedAgentDescription } from './agentDescription';
 import { serializedWorld } from './world';
 import { serializedWorldMap } from './worldMap';
 import { serializedConversation } from './conversation';
-import { conversationId, playerId } from './ids';
+import { serializedHouse } from './house';
+import { conversationId, playerId, agentId, houseId } from './ids';
 
 export const aiTownTables = {
   // This table has a single document that stores all players, conversations, and agents. This
@@ -63,6 +64,10 @@ export const aiTownTables = {
     'worldId',
     'id',
   ]),
+  archivedHouses: defineTable({ worldId: v.id('worlds'), ...serializedHouse }).index('worldId', [
+    'worldId',
+    'id',
+  ]),
 
   // The agent layer wants to know what the last (completed) conversation was between two players,
   // so this table represents a labelled graph indicating which players have talked to each other.
@@ -76,4 +81,12 @@ export const aiTownTables = {
     .index('edge', ['worldId', 'player1', 'player2', 'ended'])
     .index('conversation', ['worldId', 'player1', 'conversationId'])
     .index('playerHistory', ['worldId', 'player1', 'ended']),
+
+  // Houses for agents to live in
+  houses: defineTable({
+    worldId: v.id('worlds'),
+    ...serializedHouse,
+  })
+    .index('worldId', ['worldId'])
+    .index('owner', ['worldId', 'ownerAgentId']),
 };

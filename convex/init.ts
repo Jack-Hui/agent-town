@@ -8,6 +8,8 @@ import { Id } from './_generated/dataModel';
 import { createEngine } from './aiTown/main';
 import { ENGINE_ACTION_DURATION } from './constants';
 import { detectMismatchedLLMProvider } from './util/llm';
+import { DEFAULT_HOUSES } from './aiTown/house';
+import { GameTime } from './aiTown/time';
 
 const init = mutation({
   args: {
@@ -53,11 +55,17 @@ async function getOrCreateDefaultWorld(ctx: MutationCtx) {
 
   const engineId = await createEngine(ctx);
   const engine = (await ctx.db.get(engineId))!;
+
+  // Initialize time system
+  const initialTime = GameTime.createInitial(now);
+
   const worldId = await ctx.db.insert('worlds', {
     nextId: 0,
     agents: [],
     conversations: [],
     players: [],
+    houses: [],
+    time: initialTime.serialize(),
   });
   const worldStatusId = await ctx.db.insert('worldStatus', {
     engineId: engineId,
@@ -79,6 +87,17 @@ async function getOrCreateDefaultWorld(ctx: MutationCtx) {
     objectTiles: map.objmap,
     animatedSprites: map.animatedsprites,
   });
+
+  // Create default houses
+  for (let i = 0; i < DEFAULT_HOUSES.length; i++) {
+    const houseData = DEFAULT_HOUSES[i];
+    await ctx.db.insert('houses', {
+      worldId,
+      id: `h:${i}`,
+      ...houseData,
+    });
+  }
+
   await ctx.scheduler.runAfter(0, internal.aiTown.main.runStep, {
     worldId,
     generationNumber: engine.generationNumber,
